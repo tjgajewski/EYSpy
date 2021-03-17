@@ -1,126 +1,72 @@
 package run;
 
+import application.component.EYObjectSpyFrame;
+import application.driver.factory.WindowsDriver;
+import application.element.factory.WindowsElement;
 import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.theme.DarculaTheme;
+import com.sun.jna.Pointer;
 import com.sun.jna.platform.DesktopWindow;
 import com.sun.jna.platform.WindowUtils;
+import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinDef;
-import infrastructure.automationapi.IUIAutomationElement;
-import org.jsoup.Jsoup;
+import com.sun.jna.ptr.IntByReference;
 import org.jsoup.nodes.Attribute;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.select.Selector;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.ie.InternetExplorerOptions;
-import org.openqa.selenium.remote.service.DriverService;
-import selenium.WatchRunnable;
-import swing.DomFrame;
-import swing.ElementMutableTreeNode;
-import swing.ImagePanel;
-import swing.XmlJTree;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import selenium.*;
+import swing.*;
 import us.codecraft.xsoup.Xsoup;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.time.Duration;
-import java.util.Enumeration;
-import java.util.HashMap;
+import java.io.File;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
 /*from ww w .  jav  a2s .co  m*/
 
 public class Main {
-
-    public static WebDriver driver;
-    public static Document doc;
-    public static DomFrame f;
+/*
+    public static SpyDriver driver;
+    public static Element doc;
+    public static EYObjectSpyFrame f;
     public static Elements searchedForElements = new Elements();
     public static int focusedSearchedElement=0;
     public static boolean watch = false;
+    public static boolean windowWatch=false;
     public static WatchRunnable watchThread;
-    public static boolean loadingIE = true;
+    public static WindowWatchRunnable watchWindowThread;
+    public static boolean loadingWindowsDriver = true;
     public static JMenuBar bar;
     public static JPanel inpsectPanel;
     public static JPanel propertiesPanel;
     public static  JPanel findAppPan;
+    public static WindowsElement appWin;
+    public static List<DesktopWindow> windows;
+    public static RectanglesDrawingExample highlightedRect;
+    public static JPanel selectDriverPan;
+    public static int pid = Kernel32.INSTANCE.GetCurrentProcessId();
+    public static JList runningApps;
+    //public WindowsDriver windowsDriver;
 
     public static void main (String[] args) throws Exception {
-
         configureDarkTheme();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JFrame frame = new JFrame("EY Spy");
-                frame.setLayout(new BorderLayout());
-                ImageIcon img = new ImageIcon(System.getProperty("user.dir")+"\\EYlogo1.jpg");
-                frame.setIconImage(img.getImage());
-                frame.add(new ImagePanel(), BorderLayout.CENTER);
-                frame.add(new JLabel("Loading EY Spy"), BorderLayout.SOUTH);
-               // frame.setPreferredSize(new Dimension(600,400));
-                frame.pack();
-                frame.setVisible(true);
-
-                while(loadingIE){
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-frame.setVisible(false);
-
-            }
-        });
-        thread.start();
-
-
-PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir")+"\\config.properties");
-
-
-        System.setProperty("webdriver.ie.driver", System.getProperty("user.dir")+"\\IEDriverServer.exe");
-
-        InternetExplorerOptions options = new InternetExplorerOptions();
-       // options.
-        Map<String, Object> op = new HashMap<>();
-        op.put("wpfWindowTitle",propertyReader.getProperties().getProperty("wpfWindowTitle"));
-        op.put("ignoreProtectedModeSettings",true);
-        op.put("findWithURL",propertyReader.getProperties().getProperty("findWithURL"));
-        options.setCapability("se:ieOptions",op);
-        options.withAttachTimeout(120000, TimeUnit.MILLISECONDS);
-        //InternetExplorerDriverService service = new InternetExplorerDriverService();
-        Class driverServiceClass = DriverService.class;
-        Field waitField = driverServiceClass.getDeclaredField("DEFAULT_TIMEOUT");
-       // waitField.setAccessible(true);
-        setFinalStatic(waitField, Duration.ofSeconds(60L));
-        driver=new InternetExplorerDriver(options);
-
-        //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        configureDarkTheme();
-
-
-        f = new DomFrame("EY Spy");
+       // f = new EYObjectSpyFrame();
         ImageIcon img = new ImageIcon(System.getProperty("user.dir")+"\\EYlogo1.jpg");
         f.setIconImage(img.getImage());
-        //  f.setResizable(false)
-
+        f.setAlwaysOnTop(true);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setLayout(new BorderLayout());
 
@@ -150,8 +96,18 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
         file.add(save);
 
         changeApplication.addActionListener(e -> {
+
             f.add(findAppPan, BorderLayout.CENTER);
-            inpsectPanel.setVisible(false);
+            if(inpsectPanel!=null) {
+                inpsectPanel.setVisible(false);
+            }
+            if(f.myTree != null) {
+                if (f.myTree.absXpath != null) {
+                    driver.unhighlightElementByXpath(f.myTree.absXpath);
+
+                }
+               driver.killDriver();
+            }
             findAppPan.setVisible(true);
 
 
@@ -169,36 +125,289 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
 
 
         findAppPan = new JPanel(new BorderLayout());
-        JPanel topButtonSearchPan = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton findAppButton = new JButton("Find App Under Cursor (Alt + r)");
+        JPanel topSearchPan = new JPanel(new BorderLayout());
+        JPanel nextAndBackPan = new JPanel((new FlowLayout(FlowLayout.RIGHT)));
+
+        JButton nextButton = new JButton("Next");
+        nextButton.addActionListener(e -> {
+                DesktopWindow w = windows.get(runningApps.getSelectedIndex());
+                highlightedRect.dispose();
+                findDrivers(w.getHWND());
+        });
+
+
+
+
+        JButton backButton = new JButton("Back");
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(e -> {
+            f.remove(findAppPan);
+            refreshFindAppPan();
+            f.revalidate();
+            f.repaint();
+                });
+
+        refreshFindAppPan();
+        JPanel underCursorBtnPan = new JPanel((new FlowLayout(FlowLayout.LEFT)));
+        JButton findAppButton = new JButton("Find App Under Cursor");
         findAppButton.setMnemonic('r');
-        topButtonSearchPan.add(findAppButton);
-        findAppPan.add(topButtonSearchPan, BorderLayout.NORTH);
-        findAppPan.add(new ImagePanel(), BorderLayout.CENTER);
-        f.add(findAppPan, BorderLayout.CENTER);
+        underCursorBtnPan.add(findAppButton);
+        nextAndBackPan.add(refreshButton);
+        nextAndBackPan.add(backButton);
+        nextAndBackPan.add(nextButton);
+        topSearchPan.add(nextAndBackPan, BorderLayout.EAST);
+        topSearchPan.add(underCursorBtnPan, BorderLayout.WEST);
+        findAppPan.add(topSearchPan, BorderLayout.NORTH);
+
+
+
+
         findAppButton.addActionListener(e -> {
-            loadMainPan();
-            findAppPan.setVisible(false);
+            if(windowWatch==false) {
+                windowWatch = true;
+                watchWindowThread = new WindowWatchRunnable();
+                Thread t = new Thread(watchWindowThread);
+                t.start();
+            }
+            else{
+                windowWatch=false;
+                highlightedRect.dispose();
+
+            }
+
 
         });
+
         f.setPreferredSize(new Dimension(458, 700));
         f.pack();
-        loadingIE = false;
+        loadingWindowsDriver = false;
         f.setVisible(true);
     }
 
+
+    public static void refreshFindAppPan(){
+        Map<Object, Icon> icons = new HashMap<>();
+        List<DesktopWindow> allWins = WindowUtils.getAllWindows(true);
+        List<String> titles = new ArrayList<>();
+        //List<BufferedImage> icons = new ArrayList<>();
+        windows = new ArrayList<>();
+        for(int i=0;i<allWins.size();i++){
+            DesktopWindow desktopWindow = allWins.get(i);
+            WinDef.HWND hwnd = desktopWindow.getHWND();
+            String title = WindowUtils.getWindowTitle(hwnd);
+            IntByReference byRef = new IntByReference();
+            User32.INSTANCE.GetWindowThreadProcessId(desktopWindow.getHWND(),byRef);
+            if(byRef.getValue()!=pid&&!title.equals("")){
+                windows.add(desktopWindow);
+                titles.add(title);
+                Icon icon = FileSystemView.getFileSystemView().getSystemIcon(new File(desktopWindow.getFilePath()));
+                if(icon!=null)
+                    icons.put(title,icon);
+            }
+        }
+
+
+
+        runningApps = new JList(titles.toArray());
+        runningApps.setCellRenderer(new IconListRenderer(icons));
+
+        runningApps.addListSelectionListener(new ListSelectionListener()
+        {
+            public void valueChanged(ListSelectionEvent e)
+            {
+                if(e.getValueIsAdjusting()) {
+                    int index = runningApps.getSelectedIndex();
+                    highlightWindow(windows.get(index).getHWND());
+                }
+            }
+        });
+        JPanel appListPanel = new JPanel(new BorderLayout());
+        appListPanel.add(new JScrollPane(runningApps),BorderLayout.CENTER);
+        for(Component c : findAppPan.getComponents()){
+            for(Component cc : ((JPanel)c).getComponents()){
+                if(cc instanceof JScrollPane)
+                findAppPan.remove(c);
+            }
+        }
+        findAppPan.add(appListPanel,BorderLayout.CENTER);
+        findAppPan.revalidate();
+        findAppPan.repaint();
+        f.add(findAppPan, BorderLayout.CENTER);
+    }
+    static WindowsElement windowEle = null;
+public static void findDrivers(WinDef.HWND hwnd){
+
+    DesiredCapabilities capabilities = new DesiredCapabilities();
+    WindowsDriver windowsDriver = new WindowsDriver(capabilities);
+  //  WindowsElement eleUnderCursor = null;
+
+   // WindowUtils.getWindowLocationAndSize(WindowWatchRunnable.underMouse);
+   // windowsDriver.findElementByRect()
+   // Point point = MouseInfo.getPointerInfo().getLocation();
+    loop:
+    for(WindowsElement window : windowsDriver.getRootElement().getAllChildrenElements()){
+        if(window.getAttribute("hwnd").equals(Long.decode(hwnd.toString().substring(7)).toString())){
+           // eleUnderCursor = SpyWindowsDriver.descendentElementFromPoint(window,point);
+            windowEle = window;
+            break loop;
+        }
+    }
+    ArrayList<HashMap<String, Object>> driverCandidates = new ArrayList<>();
+    HashMap<String, Object> winDriverCandidate = new HashMap<>();
+    winDriverCandidate.put("windowEle",windowEle);
+    winDriverCandidate.put("driver","Windows");
+    winDriverCandidate.put("name",WindowUtils.getWindowTitle(hwnd));
+
+    driverCandidates.add(winDriverCandidate);
+    if(windowEle.getAttribute("classname").equals("SAP_FRONTEND_SESSION")){
+
+    }
+    for(WindowsElement element : windowEle.getAllDescendentElements()){
+        String frameworkId = element.getAttribute("frameworkid");
+        String name = element.getAttribute("name");
+        String className = element.getAttribute("classname");
+        if(!frameworkId.equals("")){
+
+
+        }
+
+            if(className.equals("Chrome_RenderWidgetHostHWND")){
+
+            }
+
+            else if(className.equals("Internet Explorer_Server")&&(name.startsWith("https://")||name.startsWith("http://"))){
+                HashMap<String, Object> ieDriverCandidate = new HashMap<>();
+                ieDriverCandidate.put("name",name);
+                ieDriverCandidate.put("driver","Internet Explorer");
+                ieDriverCandidate.put("winTitle",WindowUtils.getWindowTitle(hwnd).substring(0,16));
+                ieDriverCandidate.put("windowEle", element);
+                ieDriverCandidate.put("icon",new ImageIcon(System.getProperty("user.dir")+"\\icons\\windows.ico"));
+                driverCandidates.add(ieDriverCandidate);
+
+            }
+
+
+
+
+
+
+    }
+    findAppPan.setVisible(false);
+    selectDriverPan = new JPanel(new BorderLayout());
+
+
+    String[] drivers = new String[driverCandidates.size()];
+    Map<Object, Icon> icons = new HashMap<>();
+    for(int i = 0; i < driverCandidates.size(); i++){
+        HashMap<String, Object> map = driverCandidates.get(i);
+        String driver = map.get("driver").toString();
+        String title = driver+" \""+map.get("name").toString()+"\"";
+        drivers[i] =  title;
+        if(driver.equals("Internet Explorer")){
+            icons.put(title,FileSystemView.getFileSystemView().getSystemIcon( new File(System.getProperty("user.dir")+"\\iexplore.exe") ));
+        }
+        else if(driver.equals("Windows")){
+            icons.put(title,FileSystemView.getFileSystemView().getSystemIcon( new File(System.getProperty("user.dir")+"\\procexp64.exe") ));
+        }
+    }
+
+
+    JList driverCandidateList = new JList(drivers);
+    driverCandidateList.setCellRenderer(new IconListRenderer(icons));
+
+    driverCandidateList.addListSelectionListener(new ListSelectionListener()
+    {
+        public void valueChanged(ListSelectionEvent e)
+        {
+            if(e.getValueIsAdjusting()) {
+                unhighlightWindowEle();
+                int index = driverCandidateList.getSelectedIndex();
+                highlightWindowEle((WindowsElement) driverCandidates.get(index).get("windowEle"));
+            }
+        }
+    });
+    JPanel driverCandidatePanel = new JPanel(new BorderLayout());
+    driverCandidatePanel.add(new JScrollPane(driverCandidateList),BorderLayout.CENTER);
+
+    JPanel nextAndBackPan = new JPanel((new FlowLayout(FlowLayout.RIGHT)));
+    JButton nextButton = new JButton("Next");
+    JButton backButton = new JButton("Back");
+    //JButton refreshButton = new JButton("Refresh");
+    nextButton.addActionListener(e -> {
+        unhighlightWindowEle();
+            int index = driverCandidateList.getSelectedIndex();
+        String driver = (String) driverCandidates.get(index).get("driver");
+
+        if(driver.equals("Internet Explorer")){
+            Main.driver = new SpyWebDriver(driverCandidates.get(index).get("winTitle").toString().substring(0,16), driverCandidates.get(index).get("name").toString(),"ie");
+        }
+        else{
+            Main.driver = new SpyWindowsDriver(windowsDriver, windowEle);
+        }
+        selectDriverPan.setVisible(false);
+
+        loadMainPan();
+    });
+    // nextAndBackPan.add(refreshButton);
+    nextAndBackPan.add(backButton);
+    nextAndBackPan.add(nextButton);
+    selectDriverPan.add(nextAndBackPan, BorderLayout.NORTH);
+    selectDriverPan.add(driverCandidateList, BorderLayout.CENTER);
+//    Icon icon = FileSystemView.getFileSystemView().getSystemIcon(new File(allWins.get(i).getFilePath()));
+//        driver = new SpyWebDriver(wpfWindowTitle.substring(0,16),url,"ie");
+    //    loadMainPan();
+
+  //  driver = new SpyWindowsDriver(windowsDriver, windowEle);
+  //  loadMainPan();
+
+    findAppPan.setVisible(false);
+    selectDriverPan.setVisible(true);
+    f.add(selectDriverPan,BorderLayout.CENTER);
+//    }
+//    else if(frameworkId.equalsIgnoreCase("Chromeium")||windowEle.getAttribute("name").contains("Google Chrome")){
+//        String ppid = windowEle.getAttribute("ppid");
+//
+//
+//
+//
+//
+//        driver = new SpyWebDriver(ppid,null,"chrome");
+//        loadMainPan();
+//    }
+//    else{
+
+}
+public static void highlightWindow(WinDef.HWND hwnd){
+    if(highlightedRect!=null){
+        highlightedRect.dispose();
+    }
+    // DesktopWindow selectedWin =
+try {
+    Rectangle rectangle = WindowUtils.getWindowLocationAndSize(hwnd);
+    highlightedRect = new RectanglesDrawingExample(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    highlightedRect.setAlwaysOnTop(true);
+    highlightedRect.setVisible(true);
+}
+catch (Win32Exception e){
+
+}
+}
+
+public static void highlightWindowEle(WindowsElement e){
+    org.openqa.selenium.Rectangle r = e.getRect();
+    highlightedRect=new RectanglesDrawingExample(r.x,r.y, r.width, r.height);
+    highlightedRect.setVisible(true);
+    highlightedRect.setAlwaysOnTop(true);
+}
+
+    public static void unhighlightWindowEle(){
+        if(highlightedRect != null) {
+            highlightedRect.dispose();
+        }
+    }
+
     public static void loadMainPan(){
-
-
-
-
-
-
-
-
-
-
-
+f.remove(selectDriverPan);
         JPanel btnMenu = new JPanel(new FlowLayout(FlowLayout.LEFT));
         f.myTree = new XmlJTree(null);
         JScrollPane scrollPane = new JScrollPane(f.myTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -207,29 +416,14 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
         watchBtn.setMnemonic('e');
 
         watchBtn.addActionListener(e -> {
-            if(!watch){
-                f.myTree.unHighlightSelectedEle();
+                if(f.myTree.absXpath!=null) {
+                    driver.unhighlightElementByXpath(f.myTree.absXpath);
+                }
                 watch = true;
                 watchThread = new WatchRunnable();
                 Thread t = new Thread(watchThread);
                 t.start();
-            }
-            else{
-                watch=false;
-                if(watchThread.underMouse != null) {
-                    String xpath = getAbsoluteXPath(watchThread.underMouse);
 
-                    Elements searchedForElements = Xsoup.compile(xpath).evaluate(doc).getElements();
-                    if(searchedForElements.size() == 0){
-                        refreshTree();
-                        searchedForElements = Xsoup.compile(xpath).evaluate(doc).getElements();
-                    }
-
-                    selectSearchedElement(searchedForElements, 0);
-                }
-
-
-            }
         });
 
         //WebElement e = (WebElement) ((JavascriptExecutor) Main.driver).executeScript("var list = document.querySelectorAll( \":hover\" ); return list[list.length-1]");
@@ -419,10 +613,6 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
             }
         });
 
-
-
-        //f.add(btnMenu, BorderLayout.NORTH);
-
         inpsectPanel = new JPanel(new BorderLayout());
         inpsectPanel.add(btnMenu, BorderLayout.NORTH);
         inpsectPanel.add(scrollPane, BorderLayout.CENTER);
@@ -431,17 +621,12 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
         f.add(inpsectPanel, BorderLayout.CENTER);
         refreshTree();
         f.pack();
-        loadingIE = false;
-        //f.setVisible(true);
     }
 
     public static void refreshTree(){
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        String dom = (String) js.executeScript("return document.documentElement.innerHTML");
-        doc = Jsoup.parse(dom);
-
-        Element root = doc.children().get(0);
-        f.myTree.setPath(root);
+        driver.setXml(null);
+        doc = driver.buildXmlHierarchy();
+        f.myTree.setPath(doc);
     }
 
     public static void selectSearchedElement(Elements searchedForElements, int focusedSearchedElement){
@@ -482,112 +667,37 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
 
 
 
-    public static void configureDarkTheme() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
-
-        /*
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (javax.swing.UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
-        //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    public static void configureDarkTheme() {
         LafManager.setTheme(new DarculaTheme());
         LafManager.install();
     }
 
-    public static String getAbsoluteXPath(WebElement element)
-    {
-        return ((String) ((JavascriptExecutor) driver).executeScript(
-                "function absoluteXPath(element) {"+
-                        "var comp, comps = [];"+
-                        "var parent = null;"+
-                        "var xpath = '';"+
-                        "var getPos = function(element) {"+
-                        "var position = 1, curNode;"+
-                        "if (element.nodeType == Node.ATTRIBUTE_NODE) {"+
-                        "return null;"+
-                        "}"+
-                        "for (curNode = element.previousSibling; curNode; curNode = curNode.previousSibling){"+
-            "if (curNode.nodeName == element.nodeName) {"+
-                    "++position;"+
-                    "}"+
-                    "}"+
-                    "return position;"+
-                    "};"+
 
-                    "if (element instanceof Document) {"+
-                    "return '/';"+
-                    "}"+
 
-                    "for (; element && !(element instanceof Document); element = element.nodeType == Node.ATTRIBUTE_NODE ? element.ownerElement : element.parentNode) {"+
-            "comp = comps[comps.length] = {};"+
-                    "switch (element.nodeType) {"+
-                    "case Node.TEXT_NODE:"+
-                    "comp.name = 'text()';"+
-                    "break;"+
-                    "case Node.ATTRIBUTE_NODE:"+
-                    "comp.name = '@' + element.nodeName;"+
-                    "break;"+
-                    "case Node.PROCESSING_INSTRUCTION_NODE:"+
-                    "comp.name = 'processing-instruction()';"+
-                    "break;"+
-                    "case Node.COMMENT_NODE:"+
-                    "comp.name = 'comment()';"+
-                    "break;"+
-                    "case Node.ELEMENT_NODE:"+
-                    "comp.name = element.nodeName;"+
-                    "break;"+
-                    "}"+
-                    "comp.position = getPos(element);"+
-                    "}"+
 
-                    "for (var i = comps.length - 1; i >= 0; i--) {"+
-                    "comp = comps[i];"+
-                    "xpath += '/' + comp.name.toLowerCase();"+
-                    "if (comp.position !== null) {"+
-                    "xpath += '[' + comp.position + ']';"+
-                    "}"+
-                    "}"+
-
-                    "return xpath;"+
-
-                    "} return absoluteXPath(arguments[0]);", element)).replace("html[1]","html");
-        }
-    static void setFinalStatic(Field field, Object newValue) throws Exception {
-        field.setAccessible(true);
-
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-        field.set(null, newValue);
-    }
-
-    public static DesktopWindow getWindowUnderCursor(){
+    public static WinDef.HWND getWindowUnderCursor(){
         WinDef.POINT point = new WinDef.POINT();
         User32.INSTANCE.GetCursorPos(point);
-        List<DesktopWindow> windows = WindowUtils.getAllWindows(true);
         Point point1 = new Point(point.x, point.y);
-        for(DesktopWindow window : windows){
-            if(window.getLocAndSize().contains(point1)) {
-               return window;
+        List<WinDef.HWND> wins = new ArrayList<>();
+        User32.INSTANCE.EnumWindows(new User32.WNDENUMPROC() {
+            @Override
+            public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
+                WinDef.RECT rect = new WinDef.RECT();
+                User32.INSTANCE.GetWindowRect(hwnd, rect);
+                IntByReference byRef = new IntByReference();
+                User32.INSTANCE.GetWindowThreadProcessId(hwnd,byRef);
+                if(byRef.getValue()!=pid) {
+                    if (rect.toRectangle().contains(point1) && User32.INSTANCE.IsWindowVisible(hwnd)) {
+                        wins.add(hwnd);
+                    }
+                }
+               return true;
             }
-        }
-        return null;
+            },null);
+
+
+        return wins.get(0);
     }
 
 
@@ -603,12 +713,7 @@ PropertyReader propertyReader = new PropertyReader(System.getProperty("user.dir"
         ui.setCollapsedIcon(null);
     }
 
-    /*Thread.sleep(2500);
-getWindowUnderCursor();
-WindowsDriver windowsDriver = new WindowsDriver();
-windowsDriver.findElement(By.name(getWindowUnderCursor().title));
-
-     */
+ */
 
 }
 

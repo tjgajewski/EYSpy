@@ -1,5 +1,6 @@
 package swing;
 
+import infrastructure.Highlighter;
 import org.jsoup.nodes.Element;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -15,6 +16,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 
 import org.openqa.selenium.NoSuchElementException;
+import run.Main;
+import selenium.SpyDriver;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -24,10 +27,17 @@ import java.io.StringReader;
 public class XmlJTree extends JTree {
 
     DefaultTreeModel dtModel = null;
-    JavascriptExecutor js = ((JavascriptExecutor) run.Main.driver);
+    SpyDriver driver;
+    Element doc;
 
+    public void refreshTree(){
+        driver.setXml(null);
+        doc = driver.buildXmlHierarchy();
+        setPath(doc);
+    }
 
-    public XmlJTree(Element root) {
+    public XmlJTree(Element root, SpyDriver driver) {
+        this.driver = driver;
         if (root != null)
             setPath(root);
 
@@ -51,33 +61,21 @@ public class XmlJTree extends JTree {
     }
     public String absXpath;
     public void changeEleColor(String absXpath){
-
-unHighlightSelectedEle();
-
-            try {
-                js.executeScript("arguments[0].setAttribute('style','background:GreenYellow; border: 0px solid blue;');", run.Main.driver.findElement(By.xpath(absXpath)));
-                this.absXpath = absXpath;
-            } catch (NoSuchElementException e) {
-                run.Main.refreshTree();
-                this.absXpath = null;
-            }
-
+    try {
+        driver.highlightElementByXpath(absXpath);
+        this.absXpath = absXpath;
+    } catch (NoSuchElementException e) {
+        refreshTree();
+        this.absXpath = null;
     }
 
-    public void unHighlightSelectedEle(){
-        if(this.absXpath != null) {
-            try {
-                js.executeScript("arguments[0].setAttribute('style','background:; border: 0px solid blue;');", run.Main.driver.findElement(By.xpath(this.absXpath)));
-            } catch (NoSuchElementException e) {
-            }
-        }
-
     }
-
+public Element root;
     public void setPath(Element root) {
 
         if (root != null) {
-            dtModel = new DefaultTreeModel(buildNodes(root));
+            this.root=root.children().get(0);
+            dtModel = new DefaultTreeModel(buildNodes(this.root));
             this.setModel(dtModel);
             DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) this.getCellRenderer();
             renderer.setOpenIcon(null);
@@ -100,11 +98,13 @@ unHighlightSelectedEle();
 
     public String buildAbsXpath(Element element){
         StringBuilder br = new StringBuilder();
-        Element nextParent = element;
         br.append(tagId(element));
-        for(int i = 0; i < element.parents().size(); i++){
-            nextParent = nextParent.parent();
-            br.insert(0, tagId(nextParent)+"/");
+        for(Element parent : element.parents()){
+            if(parent.equals(root)){
+                br.insert(0, tagId(parent)+"/");
+                break;
+            }
+            br.insert(0, tagId(parent)+"/");
         }
         return br.toString();
     }
@@ -161,6 +161,8 @@ class MultiLineCellRenderer extends DefaultTreeCellRenderer implements TreeCellR
         add(Box.createHorizontalStrut(4));
         add(text = new TreeTextArea());
     }
+
+
 
     public Component getTreeCellRendererComponent(JTree tree, Object value,
                                                   boolean isSelected, boolean expanded, boolean leaf, int row,
