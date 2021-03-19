@@ -74,7 +74,7 @@ public Element root;
     public void setPath(Element root) {
 
         if (root != null) {
-            this.root=root.children().get(0);
+            this.root=root;
             dtModel = new DefaultTreeModel(buildNodes(this.root));
             this.setModel(dtModel);
             DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) this.getCellRenderer();
@@ -101,7 +101,7 @@ public Element root;
         br.append(tagId(element));
         for(Element parent : element.parents()){
             if(parent.equals(root)){
-                br.insert(0, tagId(parent)+"/");
+                br.insert(0, "/");
                 break;
             }
             br.insert(0, tagId(parent)+"/");

@@ -31,6 +31,7 @@ public class ElementUnderCursorHighlightThread implements Runnable {
 
                     underMouse = element;
                 }
+            System.out.println(ThreadManager.eleThreadToggle);
         }
 
     }

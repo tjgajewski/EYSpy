@@ -48,7 +48,13 @@
         </plugins>
     </build>
     <dependencies>
-
+        <dependency>
+            <groupId>us.codecraft</groupId>
+            <artifactId>xsoup</artifactId>
+            <version>0.3.2</version>
+            <scope>system</scope>
+            <systemPath>C:/Users/HB427JN/Documents/Github/EYSpy/src/test/resources/JARs/xsoup-0.3.2.jar</systemPath>
+        </dependency>
         <dependency>
             <groupId>com.github.weisj</groupId>
             <artifactId>darklaf-core</artifactId>
@@ -60,5 +66,7 @@
             <artifactId>windowsappdriver</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+
+
     </dependencies>
 </project>
