@@ -3,8 +3,6 @@ package run;
 import application.component.EYObjectSpyFrame;
 import application.driver.factory.WindowsDriver;
 import application.element.factory.WindowsElement;
-import com.github.weisj.darklaf.LafManager;
-import com.github.weisj.darklaf.theme.DarculaTheme;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.DesktopWindow;
 import com.sun.jna.platform.WindowUtils;

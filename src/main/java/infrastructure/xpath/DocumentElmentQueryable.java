@@ -27,8 +27,9 @@ public class DocumentElmentQueryable implements Queryable {
                 matchingEles.add(new DocumentElmentQueryable(child, xpath));
             }
         }
-        if(matchingEles.size()==0||matchingEles.size()<=indexToReturn){
+        if(matchingEles.size()==0||matchingEles.size()<=indexToReturn-1){
             System.out.println("Unable to find an element using By.xpath: "+xpath);
+            return new ArrayList<>();
      //       throw new NoSuchElementException("Unable to find an element using By.xpath: "+xpath);
         }
         if(indexToReturn!=-1){

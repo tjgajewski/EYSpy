@@ -1,6 +1,7 @@
 package application.component.appfinder;
 
 import com.sun.jna.platform.DesktopWindow;
+
 import infrastructure.ObjectSpyPanel;
 
 import javax.swing.*;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppIdentifierPanel extends ObjectSpyPanel {
-
     private ObjectSpyPanel centerPanel;
     protected List<DesktopWindow> windows = new ArrayList<>();
     protected JList runningApps;

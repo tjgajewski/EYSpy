@@ -2,6 +2,7 @@ package selenium;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.WebElement;
 
 public interface SpyDriver {
@@ -24,4 +25,6 @@ public interface SpyDriver {
     public Element xml = null;
 
     public void setXml(Element element);
+
+    public Elements getElmentsByXpath(String xpath, Element root);
 }

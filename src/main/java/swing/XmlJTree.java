@@ -2,6 +2,7 @@ package swing;
 
 import infrastructure.Highlighter;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 
@@ -90,9 +91,10 @@ public Element root;
 
     private ElementMutableTreeNode buildNodes(Element element) {
         ElementMutableTreeNode node = new ElementMutableTreeNode(element);
-            for (Element firstElement : element.children()) {
-                node.add(buildNodes(firstElement));
-            }
+        Elements children = element.children();
+        for (Element firstElement : children) {
+            node.add(buildNodes(firstElement));
+        }
         return node;
     }
 
@@ -119,9 +121,7 @@ public Element root;
             }
 
         }
-        if(tagIndex != 1){
-            tagName = tagName + "[" + tagIndex + "]";
-        }
+        tagName = tagName + "[" + tagIndex + "]";
         return tagName;
     }
     @Override

@@ -194,12 +194,12 @@ setLayout(new BorderLayout());
         });
 
         goSearchBtn.addActionListener(z -> {
-            try {
-                searchedForElements = Xsoup.compile(field.getText()).evaluate(doc).getElements();
+            refresh();
+            String searchableText = field.getText();
+            if(searchableText.startsWith("/")){
+                searchedForElements = driver.getElmentsByXpath(searchableText,doc);
             }
-            catch (Selector.SelectorParseException e){
-            }
-            if(searchedForElements.size()==0){
+            if(searchedForElements.size()==0||!searchableText.startsWith("/")){
                 searchByText(field.getText());
             }
             focusedSearchedElement = 0;
@@ -221,30 +221,27 @@ setLayout(new BorderLayout());
 
         field.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try {
-                    searchedForElements = Xsoup.compile(field.getText()).evaluate(doc).getElements();
+                refresh();
+                String searchableText = field.getText();
+                if (searchableText.startsWith("/")) {
+                    searchedForElements = driver.getElmentsByXpath(searchableText, doc);
                 }
-                catch (Selector.SelectorParseException e2){
-                }
-                if(searchedForElements.size()==0){
+                if (searchedForElements.size() == 0 || !searchableText.startsWith("/")) {
                     searchByText(field.getText());
                 }
                 focusedSearchedElement = 0;
-                if(searchedForElements.size()==0){
+                if (searchedForElements.size() == 0) {
                     label.setText(focusedSearchedElement + " of " + searchedForElements.size() + " results");
-                }
-                else {
+                } else {
                     selectSearchedElement(searchedForElements, focusedSearchedElement);
                     label.setText(focusedSearchedElement + 1 + " of " + searchedForElements.size() + " results");
                 }
-                if(searchedForElements.size()>1){
+                if (searchedForElements.size() > 1) {
                     nextBtn.setEnabled(true);
-                }
-                else{
+                } else {
                     nextBtn.setEnabled(false);
                 }
                 prevBtn.setEnabled(false);
-
             }
         });
 
@@ -263,6 +260,9 @@ setLayout(new BorderLayout());
         driver.setXml(null);
         doc = driver.buildXmlHierarchy();
         elementTree.setPath(doc);
+        if(ThreadManager.eleThread!=null){
+            ThreadManager.eleThread.domPanel=this;
+        }
     }
 
     private void nullifyTreeIcons(){

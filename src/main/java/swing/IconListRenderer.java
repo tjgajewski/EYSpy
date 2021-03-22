@@ -33,30 +33,4 @@ public class IconListRenderer extends DefaultListCellRenderer {
             return label;
         }
 
-        public static void main(String[] args) {
-
-            // setup mappings for which icon to use for each value
-
-            Map<Object, Icon> icons = new HashMap<Object, Icon>();
-            icons.put("details",
-                    MetalIconFactory.getFileChooserDetailViewIcon());
-            icons.put("folder",
-                    MetalIconFactory.getTreeFolderIcon());
-            icons.put("computer",
-                    MetalIconFactory.getTreeComputerIcon());
-
-            JFrame frame = new JFrame("Icon List");
-            frame.setDefaultCloseOperation(
-                    JFrame.DISPOSE_ON_CLOSE);
-
-            // create a list with some test data
-
-            JList list = new JList(new Object[] {"details", "computer", "folder", "computer"});
-
-            list.setCellRenderer(new IconListRenderer(icons));
-            frame.add(list);
-            frame.pack();
-            frame.setVisible(true);
-        }
-
     }

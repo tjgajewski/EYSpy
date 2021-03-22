@@ -1,19 +1,17 @@
 package application.component;
 
+import application.component.appfinder.AppIdentifierPanel;
+import com.github.weisj.darklaf.LafManager;
+import com.github.weisj.darklaf.theme.DarculaTheme;
+import com.github.weisj.darklaf.theme.IntelliJTheme;
+import infrastructure.Highlighter;
+import infrastructure.ObjectSpyPanel;
+
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-
-import application.component.appfinder.AppIdentifierPanel;
-import application.component.driverfinder.DriverFinderPanel;
-import com.github.weisj.darklaf.LafManager;
-import com.github.weisj.darklaf.theme.DarculaTheme;
-import com.sun.jna.platform.DesktopWindow;
-import infrastructure.Highlighter;
-import infrastructure.ObjectSpyPanel;
-import run.Main;
-import swing.XmlJTree;
+import java.util.logging.Level;
 
 public class EYObjectSpyFrame extends JFrame {
 
@@ -26,8 +24,9 @@ public class EYObjectSpyFrame extends JFrame {
 
     private EYObjectSpyFrame() {
         super("EY Object Spy");
+        LafManager.setLogLevel(Level.OFF);
         LafManager.setTheme(new DarculaTheme());
-        LafManager.install();
+        //LafManager.install();
         Highlighter.buildHightlighterRect();
         ImageIcon img = new ImageIcon(System.getProperty("user.dir")+"\\EYlogo1.jpg");
         setIconImage(img.getImage());
@@ -39,8 +38,10 @@ public class EYObjectSpyFrame extends JFrame {
         changeCenterPanel(new AppIdentifierPanel());
        // add(centerPanel, BorderLayout.CENTER);
         setPreferredSize(new Dimension(458, 700));
+
         pack();
         setVisible(true);
+
     }
 
     private static EYObjectSpyFrame eyObjectSpyFrame;

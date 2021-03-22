@@ -21,17 +21,20 @@ public class ElementUnderCursorHighlightThread implements Runnable {
         while(ThreadManager.eleThreadToggle){
 
                 WebElement element = driver.getElementUnderCursor();
-                if ((underMouse == null || !underMouse.equals(element)) && element != null) {
+                if(element != null) {
+                    if ((underMouse == null || !underMouse.equals(element))) {
 
-                    if (underMouse != null)
-                        driver.unhighlight();
+                        if (underMouse != null)
+                            driver.unhighlight();
 
 
-                    driver.highlightElement(element);
+                        driver.highlightElement(element);
 
-                    underMouse = element;
+                        underMouse = element;
+                    }
                 }
-            System.out.println(ThreadManager.eleThreadToggle);
+
+            //System.out.println(ThreadManager.eleThreadToggle);
         }
 
     }

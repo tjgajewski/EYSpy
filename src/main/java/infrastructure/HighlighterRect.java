@@ -14,6 +14,7 @@ import infrastructure.xpath.WindowsElementQueryable;
 import org.jsoup.select.Elements;
 import run.Runner;
 import us.codecraft.xsoup.Xsoup;
+import xpath.parser.CommandList;
 import xpath.parser.Queryable;
 import xpath.parser.Xpath;
 
@@ -40,19 +41,28 @@ public class HighlighterRect extends JFrame {
                 if (ThreadManager.eleThreadToggle == true) {
                     ThreadManager.eleThreadToggle = false;
                     if (ThreadManager.eleThread.underMouse != null) {
-
+                        ThreadManager.eleThread.domPanel.refresh();
                         String xpath = ThreadManager.eleThread.driver.getAbsoluteXpath(ThreadManager.eleThread.underMouse);
                         Xpath xpath2 = new Xpath(new DocumentElmentQueryable(ThreadManager.eleThread.domPanel.doc, xpath));
-                        List<Queryable> queryableList=xpath2.compile(xpath).execute();
+                        CommandList commandList = xpath2.compile(xpath);
+                        List<Queryable> queryableList=commandList.execute();
                         Elements searchedForElements = new Elements();
                         for(Queryable queryable:queryableList){
                             searchedForElements.add(((DocumentElmentQueryable) queryable).ele);
                         }
+                        /*
                         //Elements searchedForElements = Xsoup.compile(xpath).evaluate(ThreadManager.eleThread.domPanel.doc).getElements();
                         if (searchedForElements.size() == 0) {
-                            ThreadManager.eleThread.domPanel.refresh();
-                            searchedForElements = Xsoup.compile(xpath).evaluate(ThreadManager.eleThread.domPanel.doc).getElements();
+
+                            Xpath xpath3 = new Xpath(new DocumentElmentQueryable(ThreadManager.eleThread.domPanel.doc, xpath));
+                            CommandList commandList3 = xpath3.compile(xpath);
+                            List<Queryable> queryableList3=commandList3.execute();
+                            searchedForElements = new Elements();
+                            for(Queryable queryable:queryableList3){
+                                searchedForElements.add(((DocumentElmentQueryable) queryable).ele);
+                            }
                         }
+                         */
 
                         ThreadManager.eleThread.domPanel.selectSearchedElement(searchedForElements, 0);
                         setVisible(false);
@@ -61,11 +71,11 @@ public class HighlighterRect extends JFrame {
                     }
                 }
                 if(ThreadManager.windowThreadToggle==true){
-                    System.out.println(WindowUtils.getWindowTitle(ThreadManager.windowThread.underMouse));
-                    System.out.println(Long.decode(ThreadManager.windowThread.underMouse.toString().substring(7)).toString());
+                  //  System.out.println(WindowUtils.getWindowTitle(ThreadManager.windowThread.underMouse));
+                   // System.out.println(Long.decode(ThreadManager.windowThread.underMouse.toString().substring(7)).toString());
                     IntByReference byRef = new IntByReference();
                     User32.INSTANCE.GetWindowThreadProcessId(ThreadManager.windowThread.underMouse,byRef);
-                    System.out.println(byRef.getValue());
+                   // System.out.println(byRef.getValue());
                     ThreadManager.windowThreadToggle=false;
                     setVisible(false);
                     ((AppIdentifierPanel) EYObjectSpyFrame.getApp().getCenterPanel()).changeCenterPanel(new DriverFinderPanel(ThreadManager.windowThread.underMouse));
@@ -86,13 +96,6 @@ public class HighlighterRect extends JFrame {
     public void setSizeAndPosition(int x, int y, int w, int h){
         setSize(w, h);
         setLocation(x,y);
-    }
-
-
-
-    public static void main(String[] args) throws Exception {
-
-       // new HighlighterRect(0,0,200,200).setVisible(true);
     }
 
 

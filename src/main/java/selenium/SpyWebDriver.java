@@ -2,10 +2,13 @@ package selenium;
 
 import application.element.factory.WindowsElement;
 import infrastructure.Highlighter;
+import infrastructure.xpath.DocXpath;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.*;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
@@ -15,15 +18,15 @@ import run.Main;
 import run.PropertyReader;
 import swing.RectanglesDrawingExample;
 
+import java.awt.*;
+import java.awt.Point;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SpyWebDriver implements SpyDriver {
@@ -107,7 +110,7 @@ public Element xml;
 
     @Override
     public void highlightElementByXpath(String xpath) {
-        Highlighter.highlightElement(driver.findElement(By.xpath(xpath)));
+        highlightElement(driver.findElement(By.xpath(xpath)));
     }
 
     @Override
@@ -120,15 +123,38 @@ public Element xml;
         Highlighter.highlightElement(element,appWin);
 
     }
-
+Point point;
     @Override
     public WebElement getElementUnderCursor() {
-        return (WebElement) js.executeScript("var list = document.querySelectorAll( \":hover\" ); return list[list.length-1]");
+       // return (WebElement) js.executeScript("var list = document.querySelectorAll( \":hover\" ); return list[list.length-1]");
+        Point point = MouseInfo.getPointerInfo().getLocation();
+        if(this.point==null||!this.point.equals(point)) {
+            this.point=point;
+            org.openqa.selenium.Rectangle winRect = appWin.getRect();
+            if(appWin.getWinDefRect().toRectangle().contains(point)) {
+                return (WebElement) js.executeScript("var list = document.elementFromPoint(" + (point.x - winRect.x) + ", " + (point.y - winRect.y) + "); return list");
+            }
+        }
+        return null;
     }
 
     @Override
     public void setXml(Element element) {
         xml=element;
+    }
+
+    @Override
+    public Elements getElmentsByXpath(String xpath, Element root) {
+        List<WebElement> webElements = driver.findElements(By.xpath(xpath));
+        List<String> xpaths = new ArrayList<>();
+        for(WebElement element:webElements){
+            xpaths.add(getAbsoluteXpath(element));
+        }
+        Elements searchedForElements = new Elements();
+        for(String xpathResults:xpaths){
+            searchedForElements.add(DocXpath.findAllByXpath(root,xpathResults).get(0));
+        }
+        return searchedForElements;
     }
 
     @Override

@@ -26,6 +26,10 @@ public class Highlighter {
         }
     }
 
+    public static void setVisible(boolean bool){
+        highlightedRect.setVisible(bool);
+    }
+
     public static void unhighlight(){
         if(highlightedRect.isVisible()) {
             highlightedRect.setVisible(false);
