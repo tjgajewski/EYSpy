@@ -41,7 +41,7 @@ public class HighlighterRect extends JFrame {
                 if (ThreadManager.eleThreadToggle == true) {
                     ThreadManager.eleThreadToggle = false;
                     if (ThreadManager.eleThread.underMouse != null) {
-                        ThreadManager.eleThread.domPanel.refresh();
+                        //ThreadManager.eleThread.domPanel.refresh();
                         String xpath = ThreadManager.eleThread.driver.getAbsoluteXpath(ThreadManager.eleThread.underMouse);
                         Xpath xpath2 = new Xpath(new DocumentElmentQueryable(ThreadManager.eleThread.domPanel.doc, xpath));
                         CommandList commandList = xpath2.compile(xpath);
@@ -50,10 +50,10 @@ public class HighlighterRect extends JFrame {
                         for(Queryable queryable:queryableList){
                             searchedForElements.add(((DocumentElmentQueryable) queryable).ele);
                         }
-                        /*
+
                         //Elements searchedForElements = Xsoup.compile(xpath).evaluate(ThreadManager.eleThread.domPanel.doc).getElements();
                         if (searchedForElements.size() == 0) {
-
+                            ThreadManager.eleThread.domPanel.refresh();
                             Xpath xpath3 = new Xpath(new DocumentElmentQueryable(ThreadManager.eleThread.domPanel.doc, xpath));
                             CommandList commandList3 = xpath3.compile(xpath);
                             List<Queryable> queryableList3=commandList3.execute();
@@ -62,7 +62,7 @@ public class HighlighterRect extends JFrame {
                                 searchedForElements.add(((DocumentElmentQueryable) queryable).ele);
                             }
                         }
-                         */
+
 
                         ThreadManager.eleThread.domPanel.selectSearchedElement(searchedForElements, 0);
                         setVisible(false);

@@ -20,8 +20,7 @@ import swing.RectanglesDrawingExample;
 
 import java.awt.*;
 import java.awt.Point;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.time.Duration;
@@ -38,6 +37,18 @@ public class SpyWebDriver implements SpyDriver {
     public SpyWebDriver(String attr1, String attr2, String browser, WindowsElement appWin){
         this.appWin = appWin;
         if(browser.equals("ie")) {
+            File urlFile = new File(System.getProperty("user.dir")+"\\url.txt");
+            if(urlFile.exists()){
+                PrintWriter cmdWriter = null;
+                try {
+                    cmdWriter = new PrintWriter(urlFile);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                cmdWriter.print("");
+                cmdWriter.print(attr2);
+                cmdWriter.close();
+            }
             System.setProperty("webdriver.ie.driver", System.getProperty("user.dir") + "\\IEDriverServer.exe");
 
             InternetExplorerOptions options = new InternetExplorerOptions();

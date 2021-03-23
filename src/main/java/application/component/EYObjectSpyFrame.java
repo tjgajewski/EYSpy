@@ -26,7 +26,7 @@ public class EYObjectSpyFrame extends JFrame {
         super("EY Object Spy");
         LafManager.setLogLevel(Level.OFF);
         LafManager.setTheme(new DarculaTheme());
-        //LafManager.install();
+        LafManager.install();
         Highlighter.buildHightlighterRect();
         ImageIcon img = new ImageIcon(System.getProperty("user.dir")+"\\EYlogo1.jpg");
         setIconImage(img.getImage());
