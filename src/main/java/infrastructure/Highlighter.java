@@ -55,8 +55,7 @@ public class Highlighter {
 
     }
 
-    public static void highlightElement(WebElement element, WindowsElement appWin){
-        org.openqa.selenium.Rectangle r = element.getRect();
+    public static void highlightElement(org.openqa.selenium.Rectangle r, WindowsElement appWin){
         org.openqa.selenium.Rectangle winRect = appWin.getRect();
         highlightedRect.setSizeAndPosition(winRect.x+r.x,winRect.y+r.y, r.width, r.height);
        // highlightedRect.setSizeAndPosition(winRect.x,winRect.y, r.width, r.height);

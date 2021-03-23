@@ -131,7 +131,13 @@ public Element xml;
 
     @Override
     public void highlightElement(WebElement element) {
-        Highlighter.highlightElement(element,appWin);
+        Map map = (Map) ((JavascriptExecutor) driver).executeScript("return arguments[0].getBoundingClientRect();",element);
+        int x = Integer.parseInt(String.valueOf(Math.round(Double.parseDouble(map.get("left").toString()))));
+        int y = Integer.parseInt(String.valueOf(Math.round(Double.parseDouble(map.get("top").toString()))));
+        int top = Integer.parseInt(String.valueOf(Math.round(Double.parseDouble(map.get("height").toString()))));
+        int width = Integer.parseInt(String.valueOf(Math.round(Double.parseDouble(map.get("width").toString()))));
+        Rectangle rect = new Rectangle(x,y,top,width);
+        Highlighter.highlightElement(rect,appWin);
 
     }
 Point point;
