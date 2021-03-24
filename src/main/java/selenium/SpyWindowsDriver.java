@@ -1,5 +1,6 @@
 package selenium;
 
+import application.component.appfinder.AppListPanel;
 import application.driver.factory.WindowsDriver;
 import application.element.factory.WindowsElement;
 import com.sun.jna.platform.win32.User32;
@@ -143,6 +144,9 @@ WindowsElement watchedElement;
                 if (descendentElementFromPoint(watchedElement.getAllChildrenElements(), point)) {
                     Highlighter.setVisible(false);
                     watchedElement = driver.elementFromPoint(new WinDef.POINT.ByValue(point.x, point.y));
+                    if(watchedElement.getAttribute("processid").equals(String.valueOf(AppListPanel.getPid()))){
+                        return null;
+                    }
                     watchedElement = drillDeeper(watchedElement,point);
                     Highlighter.setVisible(true);
                     return watchedElement;
@@ -150,7 +154,11 @@ WindowsElement watchedElement;
             } else if (mainWindow.getWinDefRect().toRectangle().contains(point)) {
                 // Highlighter.unhighlight();
                 //Highlighter.setVisible(false);
-                watchedElement = driver.elementFromPoint(new WinDef.POINT.ByValue(point.x, point.y));
+                WindowsElement watchedElement = driver.elementFromPoint(new WinDef.POINT.ByValue(point.x, point.y));
+                if(watchedElement.getAttribute("processid").equals(String.valueOf(AppListPanel.getPid()))){
+                    return null;
+                }
+                this.watchedElement=watchedElement;
                 //Highlighter.setVisible(true);
                 return watchedElement;
             }

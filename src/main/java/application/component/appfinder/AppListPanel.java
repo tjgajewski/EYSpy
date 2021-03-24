@@ -25,6 +25,11 @@ import java.util.Map;
 public class AppListPanel extends ObjectSpyPanel {
 
     private AppIdentifierPanel appIdentifierPanel;
+
+    public static int getPid() {
+        return pid;
+    }
+
     private static int pid = Kernel32.INSTANCE.GetCurrentProcessId();
 
     public AppListPanel(AppIdentifierPanel appIdentifierPanel){

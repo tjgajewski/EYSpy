@@ -9,6 +9,7 @@ import com.sun.jna.platform.WindowUtils;
 import com.sun.jna.platform.win32.WinDef;
 import infrastructure.Highlighter;
 import infrastructure.ObjectSpyPanel;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import selenium.SpyDriver;

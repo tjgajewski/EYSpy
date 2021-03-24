@@ -121,6 +121,7 @@ public Element xml;
 
     @Override
     public void highlightElementByXpath(String xpath) {
+        xpath=xpath.replace("svg","*[name()='svg']").replace("path","*[name()='path']");
         highlightElement(driver.findElement(By.xpath(xpath)));
     }
 

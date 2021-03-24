@@ -1,5 +1,6 @@
 package application.component.domviewer;
 
+import application.component.EYObjectSpyFrame;
 import application.element.factory.WindowsElement;
 import infrastructure.ObjectSpyPanel;
 import infrastructure.thread.ElementUnderCursorHighlightThread;
@@ -9,6 +10,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.select.Selector;
 import selenium.SpyDriver;
+import selenium.SpyWebDriver;
 import swing.ElementMutableTreeNode;
 import swing.XmlJTree;
 import us.codecraft.xsoup.Xsoup;
@@ -89,8 +91,12 @@ setLayout(new BorderLayout());
                     props[i][1] = element.tagName();
                     i++;
                     props[i][0] = "abs xpath";
-                    props[i][1] = node.absXpath;
-
+                    if(driver instanceof SpyWebDriver) {
+                        props[i][1] = node.absXpath.replace("svg", "*[name()='svg']").replace("path", "*[name()='path']");
+                    }
+                    else{
+                        props[i][1] = node.absXpath;
+                    }
                     Object[] colHeaders = new Object[2];
                     colHeaders[0] = "Property";
                     colHeaders[1] = "Value";
@@ -295,6 +301,7 @@ setLayout(new BorderLayout());
                 elementTree.scrollPathToVisible(path);
             }
         }
+        //EYObjectSpyFrame.getApp().repaint();
     }
 
     public String fullElementTag(Element element){
